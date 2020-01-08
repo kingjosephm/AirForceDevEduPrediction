@@ -5,8 +5,8 @@ from utils.SURF import build_SURF
 from utils.SDE import build_SDE
 from utils.decor import build_decor
 from utils.form_3849 import form_3849
-pd.set_option('display.max_rows', 15)
-pd.set_option('display.max_columns', 250)
+pd.set_option('display.max_rows', 600)
+pd.set_option('display.max_columns', 550)
 
 
 if __name__ == '__main__':
@@ -40,11 +40,11 @@ if __name__ == '__main__':
     df = del_invar_miss_col(df, view=False)
 
     # Convert strings to factors and get mappings
-    dictionary, df = factorize_columns(df)
+    dictionary, f = factorize_columns(df)
 
     # Output
     with open(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\cat_codes.json', 'w') as j:
         json.dump(dictionary, j)
 
-    df.to_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data.csv', index=False)
-
+    f.to_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data.csv', index=False)
+    df.to_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data_unfactorized.csv', index=False)

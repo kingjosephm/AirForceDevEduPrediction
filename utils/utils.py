@@ -65,6 +65,8 @@ def factorize_columns(df):
         orig_codes = df[col].drop_duplicates().to_list()
         dictionary[col] = dict(zip(num_codes, orig_codes))
         df[col] = df[col].astype('category').cat.codes
+
+    df = df.replace(np.NaN, -1) # replace all missing values for all data types with -1 to match above
     return dictionary, df
 
 def list_series(lst):
@@ -82,3 +84,16 @@ def list_series(lst):
             row = pd.Series('')
         s = s.append(row, ignore_index=True)
     return s.reset_index(drop=True).replace('', np.NaN)
+
+def high_dimension(dictionary, nr=800):
+    '''
+    Returns list of high dimensional elements (keys) of a dictionary, where high dimensional specified by parameter 'nr'.
+    :dictionary: dictionary
+    :nr: int, number of unique values above which a particular dictionary element is considered high dimensional
+    '''
+
+    high_dim = []
+    for key, values in dictionary.items():
+        if len(dictionary[key]) > nr:
+            high_dim.append(key)
+    return high_dim

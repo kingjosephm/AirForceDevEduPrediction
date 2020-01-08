@@ -141,23 +141,14 @@ def build_SDE():
     # Verify no duplicate records within year
     assert(df.duplicated(subset=['SSN', 'Year']).all()==False), "\nThere are duplicate records within the same year!"
 
-    cols = ['SSN', 'Year', 'Final rank', 'Final score', 'Ballot rank',
-            'Adj1', 'Adj2', 'Adj3', 'Adj4', 'Adj5', 'Adj6', 'Adj7', 'Adj8', 'Adj9', 'Adj10', 'Avg adj',
-            'Pct1', 'Pct2', 'Pct3', 'Pct4', 'Pct5', 'Pct6', 'Pct7', 'Pct8', 'Pct9', 'Pct10',
-            'Order', 'AFSC', 'Board date']
-
-    reviewers = [i for i in df.columns if i not in cols and "Candidate" not in i]
-    columns = cols + reviewers
-    df = df[columns]
+    cols = ['SSN', 'Year', 'Final rank', 'Final score', 'Ballot rank', 'Order', 'AFSC', 'Board date']
+    # Note - excluded reviewers and adjustments
+    df = df[cols]
 
     df = df.sort_values(by=['Year', 'Final rank']).reset_index(drop=True)
 
     # Output df of SSNs and board dates for other scripts
     df[['SSN', 'Board date']].to_csv(os.path.join(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data', 'ssn_board_date.csv'), index=False)
     del df['Board date']
-
-    # Remove adjustment and percentage adjustment scores
-    cols = [i for i in df.columns if "Adj" not in i and "Pct" not in i and "Avg adj" not in i]
-    df = df[cols]
 
     return df

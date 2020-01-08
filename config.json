@@ -1,0 +1,12 @@
+{
+  "seed": 12345,
+  "performance_metrics": ["mse"],
+  "nodes_per_dense_layer": {"one": 64, "two": 128},
+  "dropout_share_per_layer": {"zero":  0.1, "one":  0.2, "two":  0.5},
+  "max_epochs": 300,
+  "batch_size": 64,
+  "test_share": 0.2,
+  "optimizer": "adam",
+  "outcome_feature": "Final score",
+  "excluded_features": ["SSN", "Final rank", "Final score", "Ballot rank", "Mbr Cmts", "SR Cmts"]
+}
