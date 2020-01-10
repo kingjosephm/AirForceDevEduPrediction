@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from keras import backend as K
 
 def convert_elapsed_time(col):
     '''
@@ -61,12 +62,13 @@ def factorize_columns(df):
 
     cols = [i for i in list(df.select_dtypes(include=['object']).columns) if 'Candidate' not in i]
     for col in cols:
-        num_codes = df[col].astype('category').cat.codes.drop_duplicates().to_list() # NaN is -1
+        num_codes = df[col].astype('category').cat.codes.drop_duplicates().to_list() # NaN is -1 by default
+        num_codes = [0 if i==-1 else i for i in num_codes] # replace missing (-1) with 0
         orig_codes = df[col].drop_duplicates().to_list()
         dictionary[col] = dict(zip(num_codes, orig_codes))
         df[col] = df[col].astype('category').cat.codes
 
-    df = df.replace(np.NaN, -1) # replace all missing values for all data types with -1 to match above
+    df = df.replace([np.NaN, -1], 0) # replace all missing values for all data types with 0
     return dictionary, df
 
 def list_series(lst):
@@ -93,7 +95,19 @@ def high_dimension(dictionary, nr=800):
     '''
 
     high_dim = []
-    for key, values in dictionary.items():
-        if len(dictionary[key]) > nr:
-            high_dim.append(key)
+    if nr != None:
+        for key, values in dictionary.items():
+            if len(dictionary[key]) > nr:
+                high_dim.append(key)
     return high_dim
+
+def r_square(y_true, y_pred):
+    '''
+    Computes coefficient of determination (R2) for train and valid sets
+    :param y_true: observed y_value
+    :param y_pred: predicted y_value
+    :return: coefficient of determination for Keras deep learning model
+    '''
+    SS_res = K.sum(K.square(y_true - y_pred))
+    SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
+    return (1 - SS_res/(SS_tot + K.epsilon()))

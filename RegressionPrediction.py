@@ -1,15 +1,17 @@
 import pandas as pd
 import numpy as np
-import json
+import json, keras, os
 import matplotlib.pyplot as plt
 from utils.utils import high_dimension
 from keras import regularizers
 from keras.models import Input, Model
 from keras.layers import Dense, Dropout, Embedding, Flatten, Concatenate
-from  keras.backend import clear_session
+from keras.backend import clear_session
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from utils.utils import r_square
 np.random.seed(0)
+pd.options.mode.chained_assignment = None
 
 
 def read_data():
@@ -19,49 +21,62 @@ def read_data():
     Returns:
         X - dataframe of features
         y - series of outcome feature
-        cat_features - list of categorical features in X
+        categorical_mappings - dictionary of  mappings for each categorical feature in dataframe
     '''
     # Load data
     df = pd.read_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data.csv')
     with open(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\cat_codes.json') as j:
-        dictionary = json.load(j)
+        categorical_mappings = json.load(j)
 
     # Get config
     with open('config.json') as j:
         config = json.load(j)
+    return df, categorical_mappings, config
 
-    # Identify high dimensional categorical columns to exclude
-    high_dim = high_dimension(dictionary, nr=500)
 
-    # Create datasets
-    # Note - excluding high-dimensional features for now
-    df = df.loc[:, ~df.columns.isin(['SSN', 'Final rank', 'Ballot rank', 'Mbr Cmts', 'SR Cmts'] + high_dim)]
+def save_model(model, path, file_name):
 
-    # Identify categorical (factorized) vs numeric columns
-    categorical_features = [i for i in df.columns if i in dictionary.keys()]
-    return df, categorical_features, config
-
+    if isinstance(model, keras.engine.training.Model):
+        model.save(os.path.join(path, file_name + '.h5'))
+    else:
+        print('Model type unrecognized recognized and not saved.')
 
 class RegressionPrediction:
 
-    def __init__(self, config, data, categorical_features=None):
-        self.config = config
-        self.data = data.replace(-1, 0)
-        if categorical_features is not None:
-            self.categorical_features = [col for col in categorical_features]
-            self.numeric_features = [col for col in self.data.columns if
-                                     col not in self.categorical_features and col != self.config['outcome_feature']]
-        else:
-            self.categorical_features = None
-            self.numeric_features = [col for col in self.data.columns if col != self.config['outcome_feature']]
+    def __init__(self, config=None, data=None, categorical_features=None, autorun=True):
 
-    def train_test_valid_splits(self, X, y):
+        if autorun:
+            self.data, self.categorical_mappings, self.config = read_data()
+            high_dim = high_dimension(self.categorical_mappings, nr=self.config['max_feature_categories']) # exclude categorical features with > 'max_feature_categories' unique categories
+            self.categorical_features = [i for i in list(self.categorical_mappings.keys()) if i not in [self.config['excluded_features']] and i not in high_dim]
+            self.numeric_features = [col for col in self.data.columns if col not in self.categorical_features
+                                     and col not in [self.config['excluded_features']] and self.config['outcome_feature'] not in col
+                                     and col not in high_dim]
+            self.model = self.construct_model()
+            self.model = self.train_model()
+
+        else:
+            if config is None:
+                raise ValueError("\nconfig file required, model not run.")
+            else:
+                self.config = config
+            if data is None:
+                raise ValueError("\nInput data required, model not run.")
+            else:
+                self.data = data
+            if categorical_features is None: # assume all features numeric
+                self.categorical_features = []
+                self.numeric_features = [col for col in self.data.columns if col != self.config['outcome_feature']]
+
+    def train_test_split(self):
+        '''
+        :return: Training, validation, and test sets based on desired test share
+        '''
         # Train test split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.config['test_share'], random_state=self.config['seed'])
-        # Train validation split
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train,
-                        test_size=self.config['test_share'], random_state=self.config['seed'])
-        return X_train, X_test, X_val, y_train, y_test, y_val
+        X_train, X_test, y_train, y_test = train_test_split(self.data.loc[:, self.data.columns!=self.config['outcome_feature']],
+                                                            self.data[self.config['outcome_feature']],
+                                                            test_size=self.config['test_share'], random_state=self.config['seed'])
+        return X_train, X_test, y_train, y_test
 
 
     def normalize_numeric_features(self, df):
@@ -77,13 +92,18 @@ class RegressionPrediction:
         return df
 
 
-    def embedded_model(self):
+    def construct_model(self):
+        '''
+        :return: keras.engine.training.Model object
+        '''
+
+        # Add check if deep layer number equal dropout number
 
         clear_session()
-        if self.categorical_features != None:
+        if self.categorical_features:
             categorical_input_layers = [Input(shape=(1,), dtype='int32') for _ in self.categorical_features]
             embedded_layers = [Embedding(input_dim=self.data[col].nunique(), output_dim=self.data[col].nunique(),
-                                         embeddings_regularizer=regularizers.l2(0.02))(lyr) for (col, lyr) in zip(self.categorical_features, categorical_input_layers)]
+                                         embeddings_regularizer=regularizers.l2(self.config['l2_regularization']))(lyr) for (col, lyr) in zip(self.categorical_features, categorical_input_layers)]
             flatten_layers = [Flatten()(lyr) for lyr in embedded_layers]
             numeric_input_layer = Input(shape=(len(self.numeric_features),))
             concat_layer = Concatenate(axis=1)(flatten_layers + [numeric_input_layer])
@@ -93,25 +113,33 @@ class RegressionPrediction:
             numeric_input_layer = Input(shape=(len(self.numeric_features),))
             dropout_layer = Dropout(list(self.config['dropout_share_per_layer'].values())[0])(numeric_input_layer)
         for _ in range(len(self.config['nodes_per_dense_layer'])):
-            dense_layer = Dense(list(self.config['nodes_per_dense_layer'].values())[_], activation='relu')(dropout_layer)
+            dense_layer = Dense(list(self.config['nodes_per_dense_layer'].values())[_], activation='relu', kernel_regularizer=regularizers.l2(self.config['l2_regularization']))(dropout_layer)
             dropout_layer = Dropout(list(self.config['dropout_share_per_layer'].values())[_+1])(dense_layer)
         output_layer = Dense(1, activation='linear', name='output')(dropout_layer)
         model = Model(inputs=categorical_input_layers+[numeric_input_layer], outputs=output_layer)
         return model
 
-    def train_data(self):
-        X_train, X_test, X_val, y_train, y_test, y_val = self.train_test_valid_splits(self.data.loc[:, self.data.columns!=self.config['outcome_feature']], self.data[self.config['outcome_feature']])
+    def process_data(self):
+        '''
+        :return: normalized train, test, valid sets as arrays
+        '''
+        X_train, X_test, y_train, y_test = self.train_test_split()
+        # Normalize numeric features
         X_train[self.numeric_features] = self.normalize_numeric_features(X_train[self.numeric_features])
-        X_val[self.numeric_features] = self.normalize_numeric_features(X_val[self.numeric_features])
+        X_test[self.numeric_features] = self.normalize_numeric_features(X_test[self.numeric_features])
+        # Convert to arrays
         X_train = self.convert_arrays(X_train, self.categorical_features, self.numeric_features)
-        X_val = self.convert_arrays(X_val, self.categorical_features, self.numeric_features)
-        model = self.embedded_model()
-        model.compile(loss='mse', optimizer=self.config['optimizer'], metrics=self.config['performance_metrics'])
-        if categorical_features is not None:
-            model.fit(X_train, y_train, epochs=self.config['max_epochs'], batch_size=self.config['batch_size'], verbose=1, validation_data=(X_val, y_val))
-        else:
-            model.fit(X_train[self.numeric_features], y_train, epochs=self.config['max_epochs'], batch_size=self.config['batch_size'],
-                      verbose=1, validation_data=(X_val[self.numeric_features], y_val))
+        X_test = self.convert_arrays(X_test, self.categorical_features, self.numeric_features)
+        return X_train, X_test, y_train, y_test
+
+    def train_model(self):
+        '''
+        :return: keras model wrapper
+        '''
+        X_train, X_test, y_train, y_test = self.process_data()
+        model = self.construct_model()
+        model.compile(loss=self.config['loss'], optimizer=self.config['optimizer'], metrics=['mse', r_square])
+        model.fit(X_train, y_train, epochs=self.config['max_epochs'], batch_size=self.config['batch_size'], verbose=1, validation_data=(X_test, y_test))
         return model
 
     def convert_arrays(self, df, categorical_features, numeric_features):
@@ -124,21 +152,38 @@ class RegressionPrediction:
         '''
         return [df[col] for col in categorical_features] + [df[numeric_features]]
 
+    def generate_prediction(self):
+        '''
+        :return: Pands dataframe of predicted values for training and validation sets with associated identifiers
+        '''
+        X_train, X_test, _, _ = self.train_test_split() # recover original identifier
+        X_train_norm, X_test_norm, _, _ = self.process_data() # normalized data in array form for prediction
+        train_prediction = pd.DataFrame(self.model.predict(X_train_norm), index=X_train[self.config['identifier_feature']]).reset_index().rename(columns={0: 'prediction'})
+        val_prediction = pd.DataFrame(self.model.predict(X_test_norm), index=X_test[self.config['identifier_feature']]).reset_index().rename(columns={0: 'prediction'})
+        return train_prediction, val_prediction
+
 
 if __name__ == '__main__':
-    # Get all the things
-    df, categorical_features, config = read_data()
 
     # Allow categorical and numeric features
-    history = RegressionPrediction(config, df, categorical_features).train_data()
+    model = RegressionPrediction()
+    #save_model(model.model, r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\results', 'initial_model')
 
     plt.close()
-    plt.plot(history.history.history['loss'][10:])
-    plt.plot(history.history.history['val_loss'][10:])
+    plt.plot(model.model.history.history['mse'][5:])
+    plt.plot(model.model.history.history['val_mse'][5:])
     plt.title('Mean Squared Error')
     plt.ylabel('Loss (MSE)')
     plt.xlabel('Epoch')
     plt.legend(['train', 'validation'])
     plt.show()
-    plt.savefig(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\results\figures\cat_numeric.png', dpi=250)
+    plt.savefig(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\results\figures\mse_performance.png', dpi=350)
 
+    plt.close()
+    plt.plot(model.model.history.history['val_r_square'][5:])
+    plt.title('Coefficient of Determination (R2)')
+    plt.ylabel('Share of variance explained')
+    plt.xlabel('Epoch')
+    plt.legend(['validation'])
+    plt.show()
+    plt.savefig(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\results\figures\r2_performance.png', dpi=350)
