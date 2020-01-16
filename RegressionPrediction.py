@@ -9,9 +9,12 @@ from keras.layers import Dense, Dropout, Embedding, Flatten, Concatenate
 from keras.backend import clear_session
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-from utils.utils import r_square
+from utils.utils import r_square, factorize_columns
 np.random.seed(0)
 pd.options.mode.chained_assignment = None
+pd.errors.DtypeWarning = False
+pd.set_option('display.max_rows', 600)
+pd.set_option('display.max_columns', 550)
 
 
 def read_data():
@@ -23,15 +26,18 @@ def read_data():
         y - series of outcome feature
         categorical_mappings - dictionary of  mappings for each categorical feature in dataframe
     '''
-    # Load data
-    df = pd.read_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data.csv')
-    with open(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\cat_codes.json') as j:
-        categorical_mappings = json.load(j)
+    # Load unfactorized data
+    df = pd.read_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data_unfactorized.csv', low_memory=False)
+    df.drop(columns=['Final rank', 'Ballot rank'], inplace=True) # drop cols that are product of outcome variable of interest
+
+    # Convert strings to factors and get mappings
+    categorical_mappings, f = factorize_columns(df)
 
     # Get config
     with open('config.json') as j:
         config = json.load(j)
-    return df, categorical_mappings, config
+
+    return f, categorical_mappings, config
 
 
 def save_model(model, path, file_name):
@@ -48,12 +54,13 @@ class RegressionPrediction:
         if autorun:
             self.data, self.categorical_mappings, self.config = read_data()
             high_dim = high_dimension(self.categorical_mappings, nr=self.config['max_feature_categories']) # exclude categorical features with > 'max_feature_categories' unique categories
-            self.categorical_features = [i for i in list(self.categorical_mappings.keys()) if i not in [self.config['excluded_features']] and i not in high_dim]
-            self.numeric_features = [col for col in self.data.columns if col not in self.categorical_features
-                                     and col not in [self.config['excluded_features']] and self.config['outcome_feature'] not in col
-                                     and col not in high_dim]
-            self.model = self.construct_model()
-            self.model = self.train_model()
+            self.string_features = self.config['string_features']
+            self.categorical_features = [i for i in list(self.categorical_mappings.keys()) if i not in self.config['excluded_features']
+                                         and i not in high_dim and self.config['outcome_feature'] not in i and self.config['identifier_feature'] not in i
+                                         and i not in self.config['string_features']]
+            self.numeric_features = [i for i in self.data.columns if i not in self.categorical_features
+                                     and i not in self.config['excluded_features'] and self.config['outcome_feature'] not in i
+                                     and i not in high_dim and self.config['identifier_feature'] not in i and i not in self.config['string_features']]
 
         else:
             if config is None:
@@ -167,6 +174,7 @@ if __name__ == '__main__':
 
     # Allow categorical and numeric features
     model = RegressionPrediction()
+    model.train_model()
     #save_model(model.model, r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\results', 'initial_model')
 
     plt.close()

@@ -3,7 +3,7 @@ import numpy as np
 import os
 from utils.utils import convert_elapsed_time, del_invar_miss_col
 
-def build_SURF(view_delete_cols=False):
+def build_SURF():
 
     '''
     :print_delete_cols: bool, whether to print columns with more than 95% missing
@@ -39,16 +39,21 @@ def build_SURF(view_delete_cols=False):
     # Consolidate variables
     surf['LANG ID 1'] = np.where(surf['LANG ID 1'].notnull(), surf['LANG ID 1'], surf['LANG ID 1.1'])
     surf['LANG ID 2'] = np.where(surf['LANG ID 2'].notnull(), surf['LANG ID 2'], surf['LANG ID 2.1'])
-    surf.drop(columns=['LANG ID 1.1', 'LANG ID 2.1', 'DTY PHONE'], inplace=True)
+    surf.drop(columns=['LANG ID 1.1', 'LANG ID 2.1', 'DTY PHONE', 'PERS AEFI.1'], inplace=True)
 
     surf.drop_duplicates(subset=['SSN', 'Year'], inplace=True)  # drop duplicates within SSN year
 
     # Convert to datetime format
-    dates = [i for i in surf.columns if "DATE" in i or 'BDAY' in i or 'DEROS' in i] # convert to datetime format
+    dates = [i for i in surf.columns if "DATE" in i or 'BDAY' in i or 'DEROS' in i or 'GRADE CURR DOR' in i] # convert to datetime format
     for col in dates:
         surf[col] = convert_elapsed_time(surf[col])
 
     # Drop mostly missing columns & invariant columns
     surf = del_invar_miss_col(surf, view=False)
+
+    # Exclude columns that board does not see
+    exclude = [i for i in surf.columns if "PME DATE" in i][:5]+[i for i in surf.columns if "PME METHOD" in i][:5]+\
+              [i for i in surf.columns if "ACAD VOC EDUC" in i]+[i for i in surf.columns if "ACAD EDUC METH" in i]
+    surf = surf[[i for i in surf.columns if i not in exclude]]
 
     return surf

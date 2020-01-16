@@ -38,6 +38,59 @@ def build_SDE():
     reviewers = ['Toth', 'McGee', 'Hackbarth', 'Solomon', 'Onufer', 'Farmer', 'Graham', 'Ebner', 'Collins', 'Katzer']
     df19[reviewers] = df19[reviewers].apply(lambda x: (x - df19[reviewers].mean(axis=1)) / df19[reviewers].std(axis=1))
 
+    # Board composition
+    # Source: "\\pii_zippy\d\USAF PME Board Evaluations\Download 20191122\2018-19\2019 Central Board_IDE-SDEv5 (FINAL).xlsx"
+    # "SDE 2019 board composition.pdf" in same folder does not contain most board member names
+    df19['race_Toth'] = 'WHITE'
+    df19['gender_Toth'] = 'MALE'
+    df19['hisp_Toth'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Toth'] = '11F'
+    #
+    df19['race_McGee'] = 'WHITE'
+    df19['gender_McGee'] = 'FEMALE'
+    df19['hisp_McGee'] = 'HISPANIC OR LATINO'
+    df19['afsc_McGee'] = '13S'
+    #
+    df19['race_Hackbarth'] = 'WHITE'
+    df19['gender_Hackbarth'] = 'MALE'
+    df19['hisp_Hackbarth'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Hackbarth'] = '11M'
+    #
+    df19['race_Solomon'] = 'WHITE'
+    df19['gender_Solomon'] = 'MALE'
+    df19['hisp_Solomon'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Solomon'] = '17D'
+    #
+    df19['race_Onufer'] = 'WHITE'
+    df19['gender_Onufer'] = 'FEMALE'
+    df19['hisp_Onufer'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Onufer'] = '12S'
+    #
+    df19['race_Farmer'] = 'WHITE'
+    df19['gender_Farmer'] = 'MALE'
+    df19['hisp_Farmer'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Farmer'] = '11B'
+    #
+    df19['race_Graham'] = 'WHITE'
+    df19['gender_Graham'] = 'MALE'
+    df19['hisp_Graham'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Graham'] = '21R'
+    #
+    df19['race_Ebner'] = 'WHITE'
+    df19['gender_Ebner'] = 'FEMALE'
+    df19['hisp_Ebner'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Ebner'] = '11F'
+    #
+    df19['race_Collins'] = 'WHITE'
+    df19['gender_Collins'] = 'MALE'
+    df19['hisp_Collins'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Collins'] = '63A'
+    #
+    df19['race_Katzer'] = 'WHITE'
+    df19['gender_Katzer'] = 'MALE'
+    df19['hisp_Katzer'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Katzer'] = '32E'
+
     #################################################
     #####               2018 SDE                #####
     #################################################
@@ -72,6 +125,59 @@ def build_SDE():
     reviewers = ['CLUFF', 'JOHNSON', 'RICHARDSON', 'TOWNSEND', 'BASS', 'CULLEN', 'CANTWELL', 'ASHLEY', 'MINEAU', 'BELZ']
     df18[reviewers] = df18[reviewers].apply(lambda x: (x - df18[reviewers].mean(axis=1)) / df18[reviewers].std(axis=1))
 
+    # Board composition
+    # Source: "\\pii_zippy\d\USAF PME Board Evaluations\Download 20191122\2018-19\2018 BOARD WORKSHEET (IDE-SDE)v3_6 apr 18.xlsx"
+    # "SDE 2018 board composition.pdf" in this same directory missing some board member names that were in original data
+    df19['race_Cluff'] = 'WHITE'
+    df19['gender_Cluff'] = 'MALE'
+    df19['hisp_Cluff'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Cluff'] = '11F'
+    #
+    df19['race_Johnson'] = 'WHITE'
+    df19['gender_Johnson'] = 'FEMALE'
+    df19['hisp_Johnson'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Johnson'] = '17D'
+    #
+    df19['race_Richardson'] = 'WHITE'
+    df19['gender_Richardson'] = 'MALE'
+    df19['hisp_Richardson'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Richardson'] = '12M'
+    #
+    df19['race_Townsend'] = 'BLACK OR AFRICAN AMERICAN'
+    df19['gender_Townsend'] = 'MALE'
+    df19['hisp_Townsend'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Townsend'] = '13N'
+    #
+    df19['race_Bass'] = 'WHITE'
+    df19['gender_Bass'] = 'MALE'
+    df19['hisp_Bass'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Bass'] = '13B'
+    #
+    df19['race_Cullen'] = 'WHITE'
+    df19['gender_Cullen'] = 'MALE'
+    df19['hisp_Cullen'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Cullen'] = '31P'
+    #
+    df19['race_Cantwell'] = 'ASIAN'
+    df19['gender_Cantwell'] = 'MALE'
+    df19['hisp_Cantwell'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Cantwell'] = '11F'
+    #
+    df19['race_Ashley'] = 'WHITE'
+    df19['gender_Ashley'] = 'MALE'
+    df19['hisp_Ashley'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Ashley'] = '62E'
+    #
+    df19['race_Mineau'] = 'WHITE'
+    df19['gender_Mineau'] = 'MALE'
+    df19['hisp_Mineau'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Mineau'] = '11F'
+    #
+    df19['race_Belz'] = 'WHITE'
+    df19['gender_Belz'] = 'MALE'
+    df19['hisp_Belz'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Belz'] = '21A'
+
     #################################################
     #####               2017 SDE                #####
     #################################################
@@ -99,6 +205,59 @@ def build_SDE():
     # Standardize reviewer scores across each other
     reviewers = ['Leavitt', 'Roberson', 'Cooper', 'Purdy', 'Krishna', 'Delgado', 'Spain', 'Farrar', 'McDaniel', 'McCray']
     df17[reviewers] = df17[reviewers].apply(lambda x: (x - df17[reviewers].mean(axis=1)) / df17[reviewers].std(axis=1))
+
+    # Board composition
+    # Source: "\\pii_zippy\d\USAF PME Board Evaluations\Download 20191122\2016-17\CENTRAL PME BOARD WORKSHEET_IDE_SDEV2 - PRIMARIES ONLY 2017.xlsx"
+    #
+    df19['race_Leavitt'] = 'WHITE'
+    df19['gender_Leavitt'] = 'FEMALE'
+    df19['hisp_Leavitt'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Leavitt'] = '11F'
+    #
+    df19['race_Roberson'] = 'WHITE'
+    df19['gender_Roberson'] = 'MALE'
+    df19['hisp_Roberson'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Roberson'] = '13S'
+    #
+    df19['race_Cooper'] = 'WHITE'
+    df19['gender_Cooper'] = 'MALE'
+    df19['hisp_Cooper'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Cooper'] = '11R'
+    #
+    df19['race_Purdy'] = 'WHITE'
+    df19['gender_Purdy'] = 'MALE'
+    df19['hisp_Purdy'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Purdy'] = '63A'
+    #
+    df19['race_Krishna'] = 'WHITE'
+    df19['gender_Krishna'] = 'MALE'
+    df19['hisp_Krishna'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Krishna'] = '12R'
+    #
+    df19['race_Delgado'] = 'WHITE'
+    df19['gender_Delgado'] = 'MALE'
+    df19['hisp_Delgado'] = 'HISPANIC OR LATINO'
+    df19['afsc_Delgado'] = '17D'
+    #
+    df19['race_Spain'] = 'BLACK OR AFRICAN AMERICAN'
+    df19['gender_Spain'] = 'MALE'
+    df19['hisp_Spain'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Spain'] = '11F'
+    #
+    df19['race_Farrar'] = 'WHITE'
+    df19['gender_Farrar'] = 'MALE'
+    df19['hisp_Farrar'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_Farrar'] = '31P'
+    #
+    df19['race_McDaniel'] = 'WHITE'
+    df19['gender_McDaniel'] = 'MALE'
+    df19['hisp_McDaniel'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_McDaniel'] = '11M'
+    #
+    df19['race_McCray'] = 'WHITE'
+    df19['gender_McCray'] = 'MALE'
+    df19['hisp_McCray'] = 'NOT HISPANIC OR LATINO'
+    df19['afsc_McCray'] = '21A'
 
     '''
 
@@ -141,7 +300,9 @@ def build_SDE():
     # Verify no duplicate records within year
     assert(df.duplicated(subset=['SSN', 'Year']).all()==False), "\nThere are duplicate records within the same year!"
 
-    cols = ['SSN', 'Year', 'Final rank', 'Final score', 'Ballot rank', 'Order', 'AFSC', 'Board date']
+    cols = ['SSN', 'Year', 'Final rank', 'Final score', 'Ballot rank', 'Order', 'AFSC', 'Board date']\
+           +[i for i in df.columns if "Race_" in i or "Gender_" in i or "Afsc_" in i or "Hisp_" in i]
+
     # Note - excluded reviewers and adjustments
     df = df[cols]
 

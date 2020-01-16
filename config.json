@@ -3,13 +3,14 @@
   "nodes_per_dense_layer": {"one": 256, "two": 512},
   "dropout_share_per_layer": {"zero":  0.1, "one":  0.2, "two":  0.5},
   "l2_regularization": 0.05,
-  "max_epochs": 35,
+  "max_epochs": 5,
   "batch_size": 256,
   "test_share": 0.25,
   "optimizer": "adam",
   "loss": "mse",
   "outcome_feature": "Final score",
-  "excluded_features": ["SSN", "Final rank", "Final score", "Ballot rank", "Mbr Cmts", "SR Cmts"],
+  "excluded_features": [],
   "identifier_feature": "SSN",
+  "string_features" : ["Mbr Cmts", "SR Cmts"],
   "max_feature_categories": 600
 }

@@ -60,32 +60,17 @@ def factorize_columns(df):
 
     dictionary = {} # initialize dictionary for factor mappings
 
-    cols = [i for i in list(df.select_dtypes(include=['object']).columns) if 'Candidate' not in i]
-    for col in cols:
+    cat_cols = [i for i in list(df.select_dtypes(include=['object']).columns) if
+                'Candidate' not in i and 'Mbr Cmts' not in i and 'SR Cmts' not in i]
+    for col in cat_cols:
         num_codes = df[col].astype('category').cat.codes.drop_duplicates().to_list() # NaN is -1 by default
         num_codes = [0 if i==-1 else i for i in num_codes] # replace missing (-1) with 0
         orig_codes = df[col].drop_duplicates().to_list()
         dictionary[col] = dict(zip(num_codes, orig_codes))
         df[col] = df[col].astype('category').cat.codes
 
-    df = df.replace([np.NaN, -1], 0) # replace all missing values for all data types with 0
+    df = df.replace([np.NaN, -1], 0) # replace all missing values with 0
     return dictionary, df
-
-def list_series(lst):
-    '''
-    Iterates through a list of lists in a Pandas series,
-    converting each element to string
-    :lst: pandas series as list
-    returns: string series
-    '''
-    s = pd.Series()
-    for nr in range(0, len(lst)):
-        try:
-            row = pd.Series(', '.join(str(x) for x in lst[nr]))
-        except TypeError:
-            row = pd.Series('')
-        s = s.append(row, ignore_index=True)
-    return s.reset_index(drop=True).replace('', np.NaN)
 
 def high_dimension(dictionary, nr=800):
     '''
