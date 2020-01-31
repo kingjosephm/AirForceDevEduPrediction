@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import json, keras, os
+import json, keras, os, shap
 import matplotlib.pyplot as plt
 from utils.utils import high_dimension
 from keras import regularizers
@@ -12,7 +12,6 @@ from sklearn.preprocessing import MinMaxScaler
 from utils.utils import r_square, factorize_columns
 np.random.seed(0)
 pd.options.mode.chained_assignment = None
-pd.errors.DtypeWarning = False
 pd.set_option('display.max_rows', 600)
 pd.set_option('display.max_columns', 550)
 
@@ -22,22 +21,22 @@ def read_data():
     Loads appended CSV dataset and json dictionary of factorized variable categorical codes, creates X dataframe
     that excludes high-dimensional and other columns.
     Returns:
-        X - dataframe of features
-        y - series of outcome feature
+        df_fac - dataframe of factorized categorical features (excluding string features) and numeric features
         categorical_mappings - dictionary of  mappings for each categorical feature in dataframe
+        config file
     '''
     # Load unfactorized data
     df = pd.read_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data_unfactorized.csv', low_memory=False)
-    df.drop(columns=['Final rank', 'Ballot rank'], inplace=True) # drop cols that are product of outcome variable of interest
+    df.drop(columns=['Final rank', 'Ballot rank'], inplace=True) # drop cols that are product of outcome variable
 
     # Convert strings to factors and get mappings
-    categorical_mappings, f = factorize_columns(df)
+    categorical_mappings, df_fac = factorize_columns(df)
 
     # Get config
     with open('config.json') as j:
         config = json.load(j)
 
-    return f, categorical_mappings, config
+    return df_fac, categorical_mappings, config
 
 
 def save_model(model, path, file_name):
@@ -61,6 +60,10 @@ class RegressionPrediction:
             self.numeric_features = [i for i in self.data.columns if i not in self.categorical_features
                                      and i not in self.config['excluded_features'] and self.config['outcome_feature'] not in i
                                      and i not in high_dim and self.config['identifier_feature'] not in i and i not in self.config['string_features']]
+
+            self.model = self.construct_model()
+            self.model = self.train_model()
+            self.shap_values = self.shap_values(n=self.config['num_shap_observations'])
 
         else:
             if config is None:
@@ -159,6 +162,11 @@ class RegressionPrediction:
         '''
         return [df[col] for col in categorical_features] + [df[numeric_features]]
 
+    def expand_to_2d(self, arr):
+        if len(arr.shape) >= 2:
+            return arr.values
+        return np.expand_dims(arr, axis=1)
+
     def generate_prediction(self):
         '''
         :return: Pands dataframe of predicted values for training and validation sets with associated identifiers
@@ -169,6 +177,14 @@ class RegressionPrediction:
         val_prediction = pd.DataFrame(self.model.predict(X_test_norm), index=X_test[self.config['identifier_feature']]).reset_index().rename(columns={0: 'prediction'})
         return train_prediction, val_prediction
 
+    def shap_values(self, n=128):
+        subset = self.data.sample(n=n)
+        shap_subset = self.convert_arrays(subset, self.categorical_features, self.numeric_features)
+        #shap_subset = [self.expand_to_2d(i) for i in shap_subset]
+        shap_values = shap.DeepExplainer(Model(self.model.inputs, self.model.output), shap_subset).shap_values(shap_subset)
+        if self.categorical_features:
+            shap_values = [np.hstack(arr_list) for arr_list in shap_values]
+        return shap_values
 
 if __name__ == '__main__':
 
