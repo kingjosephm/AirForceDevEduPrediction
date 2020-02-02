@@ -9,7 +9,8 @@ from keras.layers import Dense, Dropout, Embedding, Flatten, Concatenate
 from keras.backend import clear_session
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-from utils.utils import r_square, factorize_columns
+from utils.utils import r_square, factorize_columns, bert_encode
+from bert_layer import BertLayer
 np.random.seed(0)
 pd.options.mode.chained_assignment = None
 pd.set_option('display.max_rows', 600)
@@ -52,8 +53,10 @@ class RegressionPrediction:
 
         if autorun:
             self.data, self.categorical_mappings, self.config = read_data()
+
             high_dim = high_dimension(self.categorical_mappings, nr=self.config['max_feature_categories']) # exclude categorical features with > 'max_feature_categories' unique categories
-            self.string_features = self.config['string_features']
+
+            self.string_features = [i for i in self.config['string_features']]
             self.categorical_features = [i for i in list(self.categorical_mappings.keys()) if i not in self.config['excluded_features']
                                          and i not in high_dim and self.config['outcome_feature'] not in i and self.config['identifier_feature'] not in i
                                          and i not in self.config['string_features']]
@@ -66,6 +69,7 @@ class RegressionPrediction:
             self.shap_values = self.shap_values(n=self.config['num_shap_observations'])
 
         else:
+            #TODO: add manual input for string features
             if config is None:
                 raise ValueError("\nconfig file required, model not run.")
             else:
@@ -107,26 +111,33 @@ class RegressionPrediction:
         :return: keras.engine.training.Model object
         '''
 
-        # Add check if deep layer number equal dropout number
+        # Verify number of layers for nodes equals number of layers for dropout
+        if self.config['nodes_per_dense_layer'] + 1 != self.config['dropout_share_per_layer']:
+            raise ValueError("\nNumber of layers for dropout share and nodes per dense layer different! These must be the same.")
 
         clear_session()
         if self.categorical_features:
+            string_input_layers = [BertLayer().create_layer(max_len=self.config['max_string_len'])
+                                   for _ in self.string_features]
             categorical_input_layers = [Input(shape=(1,), dtype='int32') for _ in self.categorical_features]
             embedded_layers = [Embedding(input_dim=self.data[col].nunique(), output_dim=self.data[col].nunique(),
-                                         embeddings_regularizer=regularizers.l2(self.config['l2_regularization']))(lyr) for (col, lyr) in zip(self.categorical_features, categorical_input_layers)]
-            flatten_layers = [Flatten()(lyr) for lyr in embedded_layers]
+                                         embeddings_regularizer=regularizers.l2(self.config['l2_regularization']))(lyr)
+                               for (col, lyr) in zip(self.categorical_features, categorical_input_layers)]
+            flatten_layers = [Flatten()(lyr) for lyr in string_input_layers + embedded_layers]
             numeric_input_layer = Input(shape=(len(self.numeric_features),))
             concat_layer = Concatenate(axis=1)(flatten_layers + [numeric_input_layer])
             dropout_layer = Dropout(list(self.config['dropout_share_per_layer'].values())[0])(concat_layer)
-        else:
+        else: # assume no categorical features, treat all as numeric
+            string_input_layers = []
             categorical_input_layers = []
             numeric_input_layer = Input(shape=(len(self.numeric_features),))
             dropout_layer = Dropout(list(self.config['dropout_share_per_layer'].values())[0])(numeric_input_layer)
         for _ in range(len(self.config['nodes_per_dense_layer'])):
-            dense_layer = Dense(list(self.config['nodes_per_dense_layer'].values())[_], activation='relu', kernel_regularizer=regularizers.l2(self.config['l2_regularization']))(dropout_layer)
+            dense_layer = Dense(list(self.config['nodes_per_dense_layer'].values())[_], activation='relu',
+                                kernel_regularizer=regularizers.l2(self.config['l2_regularization']))(dropout_layer)
             dropout_layer = Dropout(list(self.config['dropout_share_per_layer'].values())[_+1])(dense_layer)
         output_layer = Dense(1, activation='linear', name='output')(dropout_layer)
-        model = Model(inputs=categorical_input_layers+[numeric_input_layer], outputs=output_layer)
+        model = Model(inputs=string_input_layers+categorical_input_layers+[numeric_input_layer], outputs=output_layer)
         return model
 
     def process_data(self):
@@ -134,12 +145,24 @@ class RegressionPrediction:
         :return: normalized train, test, valid sets as arrays
         '''
         X_train, X_test, y_train, y_test = self.train_test_split()
+
         # Normalize numeric features
         X_train[self.numeric_features] = self.normalize_numeric_features(X_train[self.numeric_features])
         X_test[self.numeric_features] = self.normalize_numeric_features(X_test[self.numeric_features])
+
+        # Encode text fields
+        if self.string_features:
+            train_text = [BertLayer().encode_text(X_train[i], max_len=self.config['max_string_len']) for i in self.string_features]
+            test_text = [BertLayer().encode_text(X_train[i], max_len=self.config['max_string_len']) for i in self.string_features]
+        else:
+            train_text = []
+            test_text = []
+
         # Convert to arrays
         X_train = self.convert_arrays(X_train, self.categorical_features, self.numeric_features)
+        X_train = X_train + train_text
         X_test = self.convert_arrays(X_test, self.categorical_features, self.numeric_features)
+        X_test = X_test + test_text
         return X_train, X_test, y_train, y_test
 
     def train_model(self):

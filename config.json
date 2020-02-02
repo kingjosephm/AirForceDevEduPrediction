@@ -11,7 +11,7 @@
   "outcome_feature": "Final score",
   "excluded_features": ["Mbr Cmts"],
   "identifier_feature": "SSN",
-  "string_feature" : "SR Cmts",
+  "string_features" : ["SR Cmts"],
   "max_string_len": 160,
   "max_feature_categories": 600,
   "num_shap_observations": 2
