@@ -60,8 +60,7 @@ def factorize_columns(df):
 
     dictionary = {} # initialize dictionary for factor mappings
 
-    cat_cols = [i for i in list(df.select_dtypes(include=['object']).columns) if
-                'Candidate' not in i and 'Mbr Cmts' not in i and 'SR Cmts' not in i]
+    cat_cols = [i for i in list(df.select_dtypes(include=['object']).columns)]
     for col in cat_cols:
         num_codes = df[col].astype('category').cat.codes.drop_duplicates().to_list() # NaN is -1 by default
         num_codes = [0 if i==-1 else i for i in num_codes] # replace missing (-1) with 0
