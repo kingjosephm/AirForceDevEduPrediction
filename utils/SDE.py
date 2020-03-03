@@ -128,55 +128,55 @@ def build_SDE():
     # Board composition
     # Source: "\\pii_zippy\d\USAF PME Board Evaluations\Download 20191122\2018-19\2018 BOARD WORKSHEET (IDE-SDE)v3_6 apr 18.xlsx"
     # "SDE 2018 board composition.pdf" in this same directory missing some board member names that were in original data
-    df19['race_Cluff'] = 'WHITE'
-    df19['gender_Cluff'] = 'MALE'
-    df19['hisp_Cluff'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Cluff'] = '11F'
+    df18['race_Cluff'] = 'WHITE'
+    df18['gender_Cluff'] = 'MALE'
+    df18['hisp_Cluff'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Cluff'] = '11F'
     #
-    df19['race_Johnson'] = 'WHITE'
-    df19['gender_Johnson'] = 'FEMALE'
-    df19['hisp_Johnson'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Johnson'] = '17D'
+    df18['race_Johnson'] = 'WHITE'
+    df18['gender_Johnson'] = 'FEMALE'
+    df18['hisp_Johnson'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Johnson'] = '17D'
     #
-    df19['race_Richardson'] = 'WHITE'
-    df19['gender_Richardson'] = 'MALE'
-    df19['hisp_Richardson'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Richardson'] = '12M'
+    df18['race_Richardson'] = 'WHITE'
+    df18['gender_Richardson'] = 'MALE'
+    df18['hisp_Richardson'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Richardson'] = '12M'
     #
-    df19['race_Townsend'] = 'BLACK OR AFRICAN AMERICAN'
-    df19['gender_Townsend'] = 'MALE'
-    df19['hisp_Townsend'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Townsend'] = '13N'
+    df18['race_Townsend'] = 'BLACK OR AFRICAN AMERICAN'
+    df18['gender_Townsend'] = 'MALE'
+    df18['hisp_Townsend'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Townsend'] = '13N'
     #
-    df19['race_Bass'] = 'WHITE'
-    df19['gender_Bass'] = 'MALE'
-    df19['hisp_Bass'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Bass'] = '13B'
+    df18['race_Bass'] = 'WHITE'
+    df18['gender_Bass'] = 'MALE'
+    df18['hisp_Bass'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Bass'] = '13B'
     #
-    df19['race_Cullen'] = 'WHITE'
-    df19['gender_Cullen'] = 'MALE'
-    df19['hisp_Cullen'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Cullen'] = '31P'
+    df18['race_Cullen'] = 'WHITE'
+    df18['gender_Cullen'] = 'MALE'
+    df18['hisp_Cullen'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Cullen'] = '31P'
     #
-    df19['race_Cantwell'] = 'ASIAN'
-    df19['gender_Cantwell'] = 'MALE'
-    df19['hisp_Cantwell'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Cantwell'] = '11F'
+    df18['race_Cantwell'] = 'ASIAN'
+    df18['gender_Cantwell'] = 'MALE'
+    df18['hisp_Cantwell'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Cantwell'] = '11F'
     #
-    df19['race_Ashley'] = 'WHITE'
-    df19['gender_Ashley'] = 'MALE'
-    df19['hisp_Ashley'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Ashley'] = '62E'
+    df18['race_Ashley'] = 'WHITE'
+    df18['gender_Ashley'] = 'MALE'
+    df18['hisp_Ashley'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Ashley'] = '62E'
     #
-    df19['race_Mineau'] = 'WHITE'
-    df19['gender_Mineau'] = 'MALE'
-    df19['hisp_Mineau'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Mineau'] = '11F'
+    df18['race_Mineau'] = 'WHITE'
+    df18['gender_Mineau'] = 'MALE'
+    df18['hisp_Mineau'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Mineau'] = '11F'
     #
-    df19['race_Belz'] = 'WHITE'
-    df19['gender_Belz'] = 'MALE'
-    df19['hisp_Belz'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Belz'] = '21A'
+    df18['race_Belz'] = 'WHITE'
+    df18['gender_Belz'] = 'MALE'
+    df18['hisp_Belz'] = 'NOT HISPANIC OR LATINO'
+    df18['afsc_Belz'] = '21A'
 
     #################################################
     #####               2017 SDE                #####
@@ -209,85 +209,56 @@ def build_SDE():
     # Board composition
     # Source: "\\pii_zippy\d\USAF PME Board Evaluations\Download 20191122\2016-17\CENTRAL PME BOARD WORKSHEET_IDE_SDEV2 - PRIMARIES ONLY 2017.xlsx"
     #
-    df19['race_Leavitt'] = 'WHITE'
-    df19['gender_Leavitt'] = 'FEMALE'
-    df19['hisp_Leavitt'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Leavitt'] = '11F'
+    df17['race_Leavitt'] = 'WHITE'
+    df17['gender_Leavitt'] = 'FEMALE'
+    df17['hisp_Leavitt'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_Leavitt'] = '11F'
     #
-    df19['race_Roberson'] = 'WHITE'
-    df19['gender_Roberson'] = 'MALE'
-    df19['hisp_Roberson'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Roberson'] = '13S'
+    df17['race_Roberson'] = 'WHITE'
+    df17['gender_Roberson'] = 'MALE'
+    df17['hisp_Roberson'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_Roberson'] = '13S'
     #
-    df19['race_Cooper'] = 'WHITE'
-    df19['gender_Cooper'] = 'MALE'
-    df19['hisp_Cooper'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Cooper'] = '11R'
+    df17['race_Cooper'] = 'WHITE'
+    df17['gender_Cooper'] = 'MALE'
+    df17['hisp_Cooper'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_Cooper'] = '11R'
     #
-    df19['race_Purdy'] = 'WHITE'
-    df19['gender_Purdy'] = 'MALE'
-    df19['hisp_Purdy'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Purdy'] = '63A'
+    df17['race_Purdy'] = 'WHITE'
+    df17['gender_Purdy'] = 'MALE'
+    df17['hisp_Purdy'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_Purdy'] = '63A'
     #
-    df19['race_Krishna'] = 'WHITE'
-    df19['gender_Krishna'] = 'MALE'
-    df19['hisp_Krishna'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Krishna'] = '12R'
+    df17['race_Krishna'] = 'WHITE'
+    df17['gender_Krishna'] = 'MALE'
+    df17['hisp_Krishna'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_Krishna'] = '12R'
     #
-    df19['race_Delgado'] = 'WHITE'
-    df19['gender_Delgado'] = 'MALE'
-    df19['hisp_Delgado'] = 'HISPANIC OR LATINO'
-    df19['afsc_Delgado'] = '17D'
+    df17['race_Delgado'] = 'WHITE'
+    df17['gender_Delgado'] = 'MALE'
+    df17['hisp_Delgado'] = 'HISPANIC OR LATINO'
+    df17['afsc_Delgado'] = '17D'
     #
-    df19['race_Spain'] = 'BLACK OR AFRICAN AMERICAN'
-    df19['gender_Spain'] = 'MALE'
-    df19['hisp_Spain'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Spain'] = '11F'
+    df17['race_Spain'] = 'BLACK OR AFRICAN AMERICAN'
+    df17['gender_Spain'] = 'MALE'
+    df17['hisp_Spain'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_Spain'] = '11F'
     #
-    df19['race_Farrar'] = 'WHITE'
-    df19['gender_Farrar'] = 'MALE'
-    df19['hisp_Farrar'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_Farrar'] = '31P'
+    df17['race_Farrar'] = 'WHITE'
+    df17['gender_Farrar'] = 'MALE'
+    df17['hisp_Farrar'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_Farrar'] = '31P'
     #
-    df19['race_McDaniel'] = 'WHITE'
-    df19['gender_McDaniel'] = 'MALE'
-    df19['hisp_McDaniel'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_McDaniel'] = '11M'
+    df17['race_McDaniel'] = 'WHITE'
+    df17['gender_McDaniel'] = 'MALE'
+    df17['hisp_McDaniel'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_McDaniel'] = '11M'
     #
-    df19['race_McCray'] = 'WHITE'
-    df19['gender_McCray'] = 'MALE'
-    df19['hisp_McCray'] = 'NOT HISPANIC OR LATINO'
-    df19['afsc_McCray'] = '21A'
+    df17['race_McCray'] = 'WHITE'
+    df17['gender_McCray'] = 'MALE'
+    df17['hisp_McCray'] = 'NOT HISPANIC OR LATINO'
+    df17['afsc_McCray'] = '21A'
 
-    '''
-
-    #################################################
-    #####               2016 SDE                #####
-    #################################################
-
-    df16 = pd.read_excel(os.path.join(directory, '2016_SDE_Final.xlsx'), skiprows=[0, 1])
-    df16.drop(columns=['new score', 'STATUS', 'Unnamed: 17', 'new score.1', 'New Rank (no ties)'], inplace=True)
-    # only 2016 there are two final-looking columns: 'New Rank (no ties)' and 'Final rank after board broke ties'
-    # I use latter. They're corr at 0.999973
-    df16.rename(columns={'SOCIAL SECURITY NO.': 'SSN', 'Rank (with Ties)': 'Ballot Rank',
-                         'Final rank after board broke ties': 'Final Rank', 'New Average': 'New Avg',
-                         'Average Score': 'Avg Score', 'CORE': 'AFSC'}, inplace=True) # should CORE be coded to AFSC or DT?
-
-    df16['Order'] = np.NaN # missing this year
-
-    for num in range(1, 11):
-        df16.columns = df16.columns.str.replace(r'Adj 2.'+str(num), 'adj'+str(num))
-        df16.columns = df16.columns.str.replace(r'Pct 2.' + str(num), 'pct' + str(num))
-        df16.columns = df16.columns.str.replace(r'Member 2.' + str(num), 'r' + str(num))
-
-    # deduced names from '//pii_zippy/d/USAF PME Board Evaluations/Download 20191122/2016-17/Central Board Panel Members v2 2016.xlsx'
-    df16.rename(columns={'r1': 'Bunnell', 'r2': 'Dunn', 'r3': 'Howard', 'r4': 'Rodriguez', 'r5': 'Tromba', 'r6': 'Norman',
-                         'r7': 'Marshall', 'r8': 'Olyniec', 'r9': 'Craycraft', 'r10': 'Schaefer'}, inplace=True)
-
-    df16['Board Date'] = '20160411'
-    df16['year'] = 2016
-
-    '''
 
     #################################################
     #####             Append SDEs               #####

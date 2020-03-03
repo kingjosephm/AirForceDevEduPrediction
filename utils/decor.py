@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+from utils.utils import del_invar_miss_col
 
 def build_decor():
 
@@ -36,5 +37,6 @@ def build_decor():
         temp = temp.pivot(index='SSN', columns='DECOR', values='DATE').reset_index() # long to wide pivot
         temp['Year'] = yr
         decor = pd.concat([decor, temp], axis=0, ignore_index=True, sort=True)
+    decor = del_invar_miss_col(decor, thresh=0.99) # drop extremely rare decorations
     decor.replace(np.NaN, 0, inplace=True)
     return decor

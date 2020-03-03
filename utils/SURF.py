@@ -9,7 +9,7 @@ def build_SURF():
     :print_delete_cols: bool, whether to print columns with more than 95% missing
     :return: Appended Pandas df of SURFs
     '''
-    path = r'D:\USAF PME Board Evaluations\Download 20191211'
+    path = r'\\pii_zippy\d\USAF PME Board Evaluations\Download 20191211'
     surf = pd.DataFrame()
     for _ in sorted([file for file in os.listdir(path) if 'xlsx' in file and not '~$' in file], reverse=True)[:-1]:
         temp = pd.read_excel(os.path.join(path, _), skiprows=[0, 1, 2])
@@ -44,7 +44,8 @@ def build_SURF():
     surf.drop_duplicates(subset=['SSN', 'Year'], inplace=True)  # drop duplicates within SSN year
 
     # Convert to datetime format
-    dates = [i for i in surf.columns if "DATE" in i or 'BDAY' in i or 'DEROS' in i or 'GRADE CURR DOR' in i] # convert to datetime format
+    dates = [i for i in surf.columns if "DATE" in i or i in ['BDAY', 'DEROS', 'GRADE CURR DOR', 'TAFCSD', 'TAFMSD',
+            'TFCSD', 'ETO', 'ODSD']] # convert to datetime format
     for col in dates:
         surf[col] = convert_elapsed_time(surf[col])
 
@@ -55,5 +56,80 @@ def build_SURF():
     exclude = [i for i in surf.columns if "PME DATE" in i][:5]+[i for i in surf.columns if "PME METHOD" in i][:5]+\
               [i for i in surf.columns if "ACAD VOC EDUC" in i]+[i for i in surf.columns if "ACAD EDUC METH" in i]
     surf = surf[[i for i in surf.columns if i not in exclude]]
+
+    surf.drop(columns=['PERS AEFI',
+                       'AEF START DATE',
+                       'ASG ACT NR 1ST ASG',
+                       'ASG REPT NLT DATE 1ST ASG',
+                       'ASG SELECT DATE 1ST ASG',
+                       'PAS 1ST ASG',
+                       'ACP ELIG DATE',
+                       'ACP EFF DATE',
+                       'ACP STOP DATE',
+                       'ADSCD 1ST',
+                       'ADSCD 2ND',
+                       'ADSCD 3RD',
+                       'ADSCD 4TH',
+                       'ADSCD 5TH',
+                       'ADSCD 6TH',
+                       'ADSCD RSN FOR 1ST',
+                       'ADSCD RSN FOR 2ND',
+                       'ADSCD RSN FOR 3RD',
+                       'ADSCD RSN FOR 4TH',
+                       'ADSCD RSN FOR 5TH',
+                       'ADSCD RSN FOR 6TH',
+                       'SPOUSE STATUS MIL',
+                       'CORE FLAG',
+                       'DTY STATUS EFF DATE',
+                       'DTY STATUS EXP DATE',
+                       'DTY STATUS EFF DATE PROJ',
+                       'DTY STATUS EXP DATE PROJ',
+                       'SCTY CLEAR ELIG DATE',
+                       'DTY POSITION NR',
+                       'PGM ELEMENT CODE',
+                       'DEPEND',
+                       'MARITAL STATUS',
+                       'RELIG',
+                       'SCTY INV BASIS',
+                       'PERS SCTY CLEAR ELIG',
+                       'CITIZENSHIP',
+                       'ACAD INST NAME 1',
+                       'ACAD INST NAME 2',
+                       'PRP GRP',
+                       'ADSC GRP',
+                       'PME 1',
+                       'PME 2',
+                       'PME 3',
+                       'PME 4',
+                       'PME 5',
+                       'PME GRP 1',
+                       'PME GRP 2',
+                       'PME GRP 3',
+                       'JPME SCHOOL LABEL',
+                       'JPME DATE',
+                       'JPME SCHOOL',
+                       'JPME METHOD',
+                       'GENDER',
+                       'RACE',
+                       'HISP',
+                       'PAS',
+                       'AUTH ACQ CAREER ',
+                       'TOT COMBAT HRS',
+                       'RATED POSITION ID',
+                       'AS OF DATE',
+                       'ACADEMIC SPECIALTY 1ST',
+                       'ACADEMIC SPECIALTY 2ND',
+                       'TIME IN GRADE (YEARS)',
+                       'TIME ON STATN (YEARS)',
+                       'PROJECTED DTY LOC',
+                       'OFFICE SYMBOL',
+                       'ASSN AVAIL CODE GRP',
+                       'ASSN LIMIT CODE GRP',
+                       'PROJECTED DTY STATUS',
+                       'DDA GRP',
+                       'NEI GRP',
+                       'SEI GEN GRP',
+                       'SEI DTY GRP',
+                       'AUTH_ACQ_POSN_TYPE_T'], inplace=True)
 
     return surf

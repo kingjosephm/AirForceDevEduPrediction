@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from utils.utils import del_invar_miss_col
 from utils.SURF import build_SURF
 from utils.SDE import build_SDE
@@ -31,26 +30,17 @@ if __name__ == '__main__':
 
     df = df.loc[:, ~df.columns.duplicated()] # ensure no col name duplicates
 
-    # Features for similiarity between board member and applicant
-    for col in [i for i in df.columns if "Gender_" in i]:
-        temp = df[col]==df['GENDER']
-        df[col] = np.where(df[col].notnull(), temp, np.NaN)
-    for col in [i for i in df.columns if "Race_" in i]:
-        temp = df[col]==df['RACE']
-        df[col] = np.where(df[col].notnull(), temp, np.NaN)
-    for col in [i for i in df.columns if "Hisp_" in i]:
-        temp = df[col]==df['HISP']
-        df[col] = np.where(df[col].notnull(), temp, np.NaN)
-    for col in [i for i in df.columns if "Afsc_" in i]:
-        temp = df[col]==df['AFSC']
-        df[col] = np.where(df[col].notnull(), temp, np.NaN)
-
     # Change bool values to binary
-    df.replace(['True', 'Yes'], 1, inplace=True)
-    df.replace(['False', 'No'], 0, inplace=True)
+    df.replace(['True', 'Yes'], 2, inplace=True)
+    df.replace(['False', 'No'], 1, inplace=True)
+
+    hrs = [i for i in df.columns if "HRS" in i]
+    for col in hrs:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
 
     # Ensure cols <94% missing
     df = del_invar_miss_col(df, view=True)
 
     # Output
     df.to_csv(r'\\pii_zippy\d\USAF PME Board Evaluations\Processed data\combined_data_unfactorized.csv', index=False)
+    df.to_csv('../data/combined_data_unfactorized.csv', index=False)

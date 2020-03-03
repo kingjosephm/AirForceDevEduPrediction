@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from keras import backend as K
+import json
+import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor as vif
 
 def convert_elapsed_time(col):
     '''
@@ -24,8 +27,9 @@ def convert_elapsed_time(col):
     else:
         col = test
 
-    # Convert to days since Unix date
-    col = (col - pd.to_datetime('1970-01-01', format='%Y-%m-%d')).astype('timedelta64[D]')
+    # Convert to days since 1900
+    col = (col - pd.to_datetime('1900-01-01', format='%Y-%m-%d')).astype('timedelta64[D]')
+    col = col + 1 # ensures no zero-duration dates; zero used as missing
     return col
 
 def del_invar_miss_col(df, thresh=0.95, view=False):
@@ -62,13 +66,14 @@ def factorize_columns(df):
 
     cat_cols = [i for i in list(df.select_dtypes(include=['object']).columns)]
     for col in cat_cols:
+        df[col] = df[col].replace(r'^\s*$', np.NaN, regex=True)
         num_codes = df[col].astype('category').cat.codes.drop_duplicates().to_list() # NaN is -1 by default
-        num_codes = [0 if i==-1 else i for i in num_codes] # replace missing (-1) with 0
+        num_codes = [i+1 for i in num_codes] # shifts zero-based index to one-based index, with zero as missing
         orig_codes = df[col].drop_duplicates().to_list()
         dictionary[col] = dict(zip(num_codes, orig_codes))
-        df[col] = df[col].astype('category').cat.codes
+        df[col] = df[col].astype('category').cat.codes +1
 
-    df = df.replace([np.NaN, -1], 0) # replace all missing values with 0
+    df = df.replace([np.NaN], 0) # replace all missing values with 0
     return dictionary, df
 
 def high_dimension(dictionary, nr=800):
@@ -121,3 +126,51 @@ def bert_encode(texts, tokenizer, max_len=512):
         all_segments.append(segment_ids)
 
     return np.array(all_tokens), np.array(all_masks), np.array(all_segments)
+
+
+def read_data():
+    '''
+    Loads appended CSV dataset and json dictionary of factorized variable categorical codes, creates X dataframe
+    that excludes high-dimensional and other columns.
+    Returns:
+        df_fac - dataframe of factorized categorical features (excluding string features) and numeric features
+        categorical_mappings - dictionary of  mappings for each categorical feature in dataframe
+        config file
+    '''
+    # Load unfactorized data
+    df = pd.read_csv('../data/combined_data_unfactorized.csv', low_memory=False)
+
+    # Get config
+    with open('config.json') as j:
+        config = json.load(j)
+
+    # Remove excluded features
+    if config['excluded_features']:
+       df = df[[i for i in df.columns if i not in config['excluded_features']]]
+
+    # Convert strings to factors and get mappings
+    if config['string_features']:
+        categorical_mappings, df_fac = factorize_columns(df[[i for i in df.columns if i not in config['string_features']]])
+        df_fac = pd.concat([df_fac, df[config['string_features']]], axis=1) # reattach original string column(s)
+    else:
+        categorical_mappings, df_fac = factorize_columns(df)
+
+    # Remove high-dimensional categorical features
+    high_dim = high_dimension(categorical_mappings, nr=config['max_feature_categories'])  # exclude categorical features with > 'max_feature_categories' unique categories
+    for x in high_dim:
+        del df_fac[x], categorical_mappings[x]
+
+    return df_fac, categorical_mappings, config
+
+def get_vif():
+    '''
+    Calculates Variance Inflation Factor for each feature in a dataframe.
+    :return: Pandas dataframe of VIF scores for each feature.
+    '''
+    df, categorical_mappings, config = read_data()
+    y = df[config['outcome_feature']]
+    X = df[[i for i in df.columns if i not in config['outcome_feature']]]
+    X = sm.add_constant(X)
+    sm.OLS(y, X).fit().summary()
+    vif_scores = [vif(X.values, i) for i in range(X.shape[1])]
+    return pd.concat([pd.Series(X.columns), pd.Series(vif_scores)], axis=1).rename(columns={0: 'column', 1: 'vif'})
