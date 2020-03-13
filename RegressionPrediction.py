@@ -37,6 +37,7 @@ class RegressionPrediction:
         if train_network:
             self.bert_model, \
             self.main_model, \
+            self.train_hist, \
             self.bert_pred_train, \
             self.bert_pred_val, \
             self.X_train, \
@@ -184,14 +185,23 @@ class RegressionPrediction:
         main_model.compile(loss=MSE, optimizer=Adam(amsgrad=True), metrics=[MSE, r_square])
 
         if self.config['early_stoppage']:
+            train_hist = main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
+                      validation_data=(X_train, y_train)) # retrain to get performance metrics without dropout in training set
+
+            # TODO: need to reset weights in below
+
             main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
                       validation_data=(X_val, y_val), callbacks=[EarlyStopping(monitor='val_mean_squared_error', mode='min', verbose=2,
                       patience=self.config['patience'], restore_best_weights=True)])
+
         else:
+            train_hist = main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
+                      validation_data=(X_train, y_train))
+
             main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
                       validation_data=(X_val, y_val))
 
-        return bert_model, main_model, bert_pred_train, bert_pred_val, X_train, X_val
+        return bert_model, main_model, train_hist, bert_pred_train, bert_pred_val, X_train, X_val
 
     def convert_arrays(self, df, categorical_features, numeric_features):
         '''

@@ -7,12 +7,16 @@ pd.set_option('display.max_columns', 550)
 from datetime import date
 import os, pickle
 
-def plot_diagnostic(model, diagnostic='r_square', constrain_N=0, plt_path=None):
+def plot_diagnostic(diagnostic='r_square', constrain_N=0, plt_path=None, bert=False):
 
-    train_temp = model.history.history[diagnostic].copy()
-    val_temp = model.history.history['val_' + diagnostic].copy()
+    val_temp = model_obj.main_model.history.history['val_' + diagnostic].copy()
+    train_temp = model_obj.train_hist.history['val_' + diagnostic].copy()[:len(val_temp)] # if early_stoppage=False might exceed length of validation
 
-    for i in range(constrain_N):
+    if bert:
+        train_temp = model_obj.bert_model.history.history['val_' + diagnostic].copy()
+        val_temp = model_obj.bert_model.history.history['val_' + diagnostic].copy()
+
+    for i in range(min(len(train_temp), constrain_N)):
         train_temp[i] = np.NaN
         val_temp[i] = np.NaN
 
@@ -101,13 +105,11 @@ def save_results():
         pickle.dump(val, p, pickle.HIGHEST_PROTOCOL)
 
     # Save results of loss over epochs
-    plot_diagnostic(model_obj.main_model, diagnostic='r_square', constrain_N=20,
-                    plt_path='../results/' + str(date.today()) + '/figures/main_rsquare.png')
-    plot_diagnostic(model_obj.main_model, diagnostic='mean_squared_error', constrain_N=20,
-                    plt_path='../results/' + str(date.today()) + '/figures/main_mse.png')
+    plot_diagnostic(diagnostic='r_square', constrain_N=5, plt_path='../results/' + str(date.today()) + '/figures/main_rsquare.png')
+    plot_diagnostic(diagnostic='mean_squared_error', constrain_N=5, plt_path='../results/' + str(date.today()) + '/figures/main_mse.png')
     if model_obj.bert_model is not None:
-        plot_diagnostic(model_obj.bert_model, diagnostic='r_square', constrain_N=1, plt_path='../results/'+str(date.today())+'/figures/bert_rsquare.png')
-        plot_diagnostic(model_obj.bert_model, diagnostic='mean_squared_error', constrain_N=1, plt_path='../results/' + str(date.today()) + '/figures/bert_mse.png')
+        plot_diagnostic(diagnostic='r_square', constrain_N=1, plt_path='../results/'+str(date.today())+'/figures/bert_rsquare.png', bert=True)
+        plot_diagnostic(diagnostic='mean_squared_error', constrain_N=1, plt_path='../results/' + str(date.today()) + '/figures/bert_mse.png', bert=True)
     plt.close()
     print("\nResults saved to disk.")
 
