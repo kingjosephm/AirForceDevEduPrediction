@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from keras import backend as K
-import json
+import json, pickle
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor as vif
 
@@ -174,3 +174,14 @@ def get_vif():
     sm.OLS(y, X).fit().summary()
     vif_scores = [vif(X.values, i) for i in range(X.shape[1])]
     return pd.concat([pd.Series(X.columns), pd.Series(vif_scores)], axis=1).rename(columns={0: 'column', 1: 'vif'})
+
+def read_from_pickle(path):
+
+    data = []
+    with open(path, 'rb') as file:
+        try:
+            while True:
+                data.append(pickle.load(file))
+        except EOFError:
+            pass
+    return data
