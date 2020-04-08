@@ -8,13 +8,11 @@
   "max_main_epochs": 300,
   "batch_size": 256,
   "test_share": 0.25,
-  "early_stoppage": true,
   "patience": 10,
   "outcome_feature": ["Final score"],
   "excluded_features": ["Final rank", "Ballot rank", "Mbr Cmts"],
   "identifier_features": ["SSN", "Year"],
-  "string_features" : [],
+  "string_features" : ["SR Cmts"],
   "max_str_len": 160,
-  "max_feature_categories": 5000,
-  "num_shap_observations": 2
+  "max_feature_categories": 5000
 }

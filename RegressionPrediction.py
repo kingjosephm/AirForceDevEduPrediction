@@ -37,13 +37,12 @@ class RegressionPrediction:
         if train_network:
             self.bert_model, \
             self.main_model, \
-            self.train_hist, \
             self.bert_pred_train, \
             self.bert_pred_val, \
             self.X_train, \
             self.X_val = self.train_network()
 
-
+    # TODO: add holdout (test) set
     def train_test_split(self):
         '''
         :return: Training, validation, and test sets based on desired test share
@@ -82,6 +81,7 @@ class RegressionPrediction:
 
         clear_session()
 
+        # TODO: Optimize network, add dropout, regularization, alter architecture as needed
         # Build bert neural network
         if self.string_features:
             input_word_ids, input_mask, segment_ids, clf_output = BertLayer().create_layer(
@@ -90,7 +90,7 @@ class RegressionPrediction:
             dense_layer = Dense(128, activation='relu')(dense_layer)
             dense_layer = Dense(256, activation='relu')(dense_layer)
             dense_layer = Dense(64, activation='relu')(dense_layer)
-            bert_output_layer = Dense(1, activation='linear', name='bert_output_layer')(dense_layer)
+            bert_output_layer = Dense(1, activation='linear', name='bert_output_layer')(dense_layer) # TODO: dynamic number of prediction vectors
             bert_model = Model(inputs=[input_word_ids, input_mask, segment_ids], outputs=bert_output_layer)
         else:
             bert_model = None
@@ -184,24 +184,16 @@ class RegressionPrediction:
         # Train main network, with bert output as input
         main_model.compile(loss=MSE, optimizer=Adam(amsgrad=True), metrics=[MSE, r_square])
 
+        # TODO: training diagnostics without dropout noise (tf.Keras default)
         if self.config['early_stoppage']:
-            train_hist = main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
+            main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
                       validation_data=(X_train, y_train)) # retrain to get performance metrics without dropout in training set
-
-            # TODO: need to reset weights in below
 
             main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
                       validation_data=(X_val, y_val), callbacks=[EarlyStopping(monitor='val_mean_squared_error', mode='min', verbose=2,
                       patience=self.config['patience'], restore_best_weights=True)])
 
-        else:
-            train_hist = main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
-                      validation_data=(X_train, y_train))
-
-            main_model.fit(X_train, y_train, epochs=self.config['max_main_epochs'], batch_size=self.config['batch_size'], verbose=2,
-                      validation_data=(X_val, y_val))
-
-        return bert_model, main_model, train_hist, bert_pred_train, bert_pred_val, X_train, X_val
+        return bert_model, main_model, bert_pred_train, bert_pred_val, X_train, X_val
 
     def convert_arrays(self, df, categorical_features, numeric_features):
         '''
@@ -212,11 +204,6 @@ class RegressionPrediction:
         :return: list of np.arrays of length number of categorical_features + 1
         '''
         return [df[col] for col in categorical_features] + [df[numeric_features]]
-
-    def expand_to_2d(self, arr):
-        if len(arr.shape) >= 2:
-            return arr
-        return np.expand_dims(arr, axis=1)
 
     def generate_prediction(self):
         '''
@@ -261,15 +248,6 @@ class RegressionPrediction:
                 _[col] = pd.to_datetime('1900-01-01', format='%Y-%m-%d') + pd.to_timedelta(_[col], unit='D')
         return train_set, val_set
 
-    def shap_values(self, n=128):
-        subset = self.data.sample(n=n)
-        shap_subset = self.convert_arrays(subset, self.categorical_features, self.numeric_features)
-        shap_subset = [self.expand_to_2d(i.values) for i in shap_subset]
-        shap_values = shap.DeepExplainer(Model(self.main_model.inputs, self.main_model.output), shap_subset).shap_values(shap_subset)
-        if self.categorical_features:
-            shap_values = [np.hstack(arr_list) for arr_list in shap_values]
-        return shap_values
-
     def ols_regression(self):
         '''
         OLS regression of whole dataset treating all features as numeric
@@ -282,7 +260,7 @@ class RegressionPrediction:
             X_val.drop(columns=self.string_features, inplace=True)
         X_train = sm.add_constant(X_train)
         X_val = sm.add_constant(X_val)
-        ols_obj = sm.OLS(y_train, X_train).fit()
+        ols_obj = sm.OLS(y_train, X_train).fit(cov_type='HC0', use_t=True) # Huber-White robust SEs
 
         # Calculate MSE and R2 out-of-sample performance
         coef = np.array(ols_obj.params)

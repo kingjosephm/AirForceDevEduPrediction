@@ -6,7 +6,6 @@ from utils.utils import convert_elapsed_time, del_invar_miss_col
 def build_SURF():
 
     '''
-    :print_delete_cols: bool, whether to print columns with more than 95% missing
     :return: Appended Pandas df of SURFs
     '''
     path = r'\\pii_zippy\d\USAF PME Board Evaluations\Download 20191211'

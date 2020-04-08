@@ -19,14 +19,18 @@ class BertLayer:
     def build_tokenizer(self, bert_layer):
         '''
         Encodees text into tokens, masks, and segment flags
-        :return:
+        :return: tokenization wrapper
         '''
         vocab_file = bert_layer.resolved_object.vocab_file.asset_path.numpy()
         do_lower_case = bert_layer.resolved_object.do_lower_case.numpy()
         return tokenization.FullTokenizer(vocab_file, do_lower_case)
 
     def create_layer(self, max_len=160):
-
+        '''
+        Creates BERT input layer, comprising
+        :param max_len:
+        :return: Tensorflow input tensors
+        '''
         input_word_ids = Input(shape=(max_len,), dtype=tf.int32, name="input_word_ids")
         input_mask = Input(shape=(max_len,), dtype=tf.int32, name="input_mask")
         segment_ids = Input(shape=(max_len,), dtype=tf.int32, name="segment_ids")

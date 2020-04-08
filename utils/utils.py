@@ -176,7 +176,10 @@ def get_vif():
     return pd.concat([pd.Series(X.columns), pd.Series(vif_scores)], axis=1).rename(columns={0: 'column', 1: 'vif'})
 
 def read_from_pickle(path):
-
+    '''
+    :param path: str, directory path to Pickle file
+    :return: list of objects contained in a Pickle
+    '''
     data = []
     with open(path, 'rb') as file:
         try:

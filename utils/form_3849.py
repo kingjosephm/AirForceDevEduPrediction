@@ -4,6 +4,9 @@ from utils.utils import del_invar_miss_col
 import os
 
 def form_3849():
+    '''
+    :return: Pandas dataframe of appended 3849 forms
+    '''
 
     path = r'\\pii_zippy\d\USAF PME Board Evaluations\Download 20191122\copies_useful_docs'
     files = [i for i in os.listdir(path) if "3849" in i]
